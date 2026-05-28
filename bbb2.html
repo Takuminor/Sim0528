@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選抜方式 統合比較シミュレーター（学術論文用・高解像度スイープ版）</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 22px;
+            color: #2c3e50;
+            border-bottom: 2px solid #34495e;
+            padding-bottom: 10px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #34495e;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 6px;
+            box-sizing: border-box;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+
+        button {
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            padding: 10px;
+            transition: 0.2s;
+        }
+
+        .btn-ui {
+            background-color: #7f8c8d;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-ui:hover {
+            background-color: #636e72;
+        }
+
+        .btn-run1 {
+            background-color: #16a085;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .btn-run1:hover {
+            background-color: #138d75;
+        }
+
+        .btn-run2 {
+            background-color: #2980b9;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .btn-run2:hover {
+            background-color: #2471a3;
+        }
+
+        .btn-run3 {
+            background-color: #c0392b;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .btn-run3:hover {
+            background-color: #a93226;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            margin-top: 10px;
+            max-height: 350px;
+            border: 1px solid #ccc;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 11px;
+            white-space: nowrap;
+            width: max-content;
+        }
+
+        th,
+        td {
+            padding: 4px 5px;
+            text-align: center;
+            vertical-align: middle;
+            border-right: 1px solid #bdc3c7;
+            border-bottom: 1px solid #bdc3c7;
+        }
+
+        th:first-child,
+        td:first-child {
+            border-left: 1px solid #bdc3c7;
+        }
+
+        thead tr:first-child th {
+            border-top: 1px solid #bdc3c7;
+        }
+
+        th {
+            position: sticky;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            z-index: 10;
+        }
+
+        thead tr:nth-child(1) th {
+            top: 0;
+            height: 32px;
+        }
+
+        thead tr:nth-child(2) th {
+            top: 31px;
+            z-index: 9;
+            height: 32px;
+        }
+
+        td input {
+            width: 40px;
+            text-align: center;
+            padding: 2px;
+            font-size: 11px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        .col-name input {
+            width: 65px;
+        }
+
+        th.col-t1,
+        td.col-t1 {
+            background-color: #ebf5fb;
+        }
+
+        th.col-t2,
+        td.col-t2 {
+            background-color: #e9f7ef;
+        }
+
+        th.col-t3,
+        td.col-t3 {
+            background-color: #f4ecf7;
+        }
+
+        th.col-e,
+        td.col-e {
+            background-color: #fdf2e9;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .warn-text {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        #log-viewer {
+            display: none;
+            margin-top: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .log-diff {
+            color: #f1c40f;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .result-table th,
+        .result-table td {
+            border: 1px solid #555;
+            padding: 6px;
+        }
+
+        .result-table th {
+            background-color: #333;
+        }
+
+        .val-t1 {
+            color: #5dade2;
+            font-weight: bold;
+        }
+
+        .val-t2 {
+            color: #58d68d;
+            font-weight: bold;
+        }
+
+        .val-t3 {
+            color: #af7ac5;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>選抜方式 統合比較シミュレーター（学術論文用・高解像度スイープ版）</h1>
+
+    <div class="container">
+        <div class="panel">
+            <h3>1. 仮想受験生の生成パラメータ</h3>
+            <div class="flex-row">
+                <div class="form-group"><label>受験生数</label><input type="number" id="num_students" value="100"></div>
+                <div class="form-group"><label>志望校記入数</label><input type="number" id="num_prefs" value="5" max="20">
+                </div>
+                <div class="form-group"><label>本番のブレ幅 (σ)</label><input type="number" id="sigma" value="4.0" step="0.5">
+                </div>
+                <div class="form-group"><label>一括実行回数</label><input type="number" id="iterations" value="300"
+                        step="100"></div>
+                <div class="form-group"><label title="スイープ分析時の1プロットあたりの試行回数">スイープ試行回数(/点)</label><input type="number"
+                        id="sweep_iterations" value="1000" step="100"></div>
+            </div>
+            <div class="info-text">※論文用のデータ抽出時は「スイープ試行回数」を1,000〜5,000程度に設定することで、統計的なノイズが排除された滑らかな曲線が得られます。<span
+                    class="warn-text">（※数千回に設定した場合、計算に数秒〜数十秒要します）</span></div>
+        </div>
+
+        <div class="panel">
+            <h3>2. 高校パラメーター（手動設定・プレビュー用）</h3>
+            <div class="flex-row" style="margin-bottom: 5px;">
+                <div
+                    style="display: flex; gap: 10px; align-items: center; background: #eee; padding: 5px 10px; border-radius: 4px;">
+                    <label style="margin:0;">複雑度(0-100%):</label>
+                    <input type="number" id="manual_complexity" value="50" min="0" max="100" style="width: 50px;">
+                    <label style="margin:0;">生成数:</label>
+                    <input type="number" id="auto_gen_count" value="5" style="width: 50px;">
+                    <button class="btn-ui" onclick="generateRandomSchoolsUI()">指定の複雑度で生成</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="schools_table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">高校名</th>
+                            <th rowspan="2">定員</th>
+                            <th colspan="2" class="col-t1">1型(線形)</th>
+                            <th colspan="1" class="col-t2">2型(セグ)</th>
+                            <th colspan="5" class="col-t3">3型(多段階)</th>
+                            <th colspan="2" class="col-e">共通ウェイト</th>
+                        </tr>
+                        <tr>
+                            <th class="col-t1">α(学)</th>
+                            <th class="col-t1">β(調)</th>
+                            <th class="col-t2">B枠(%)</th>
+                            <th class="col-t3">1次枠(%)</th>
+                            <th class="col-t3">1次(α:β)</th>
+                            <th class="col-t3">2次枠(%)</th>
+                            <th class="col-t3">2次(α:β)</th>
+                            <th class="col-t3">3次(α:β)</th>
+                            <th class="col-e">学(WE)</th>
+                            <th class="col-e">調(WR)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schools_tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>3. 分析の実行</h3>
+            <div class="button-group">
+                <button class="btn-run1" onclick="runSingleROC()">① 1回実行<br><span
+                        style="font-size:11px; font-weight:normal;">(ROC曲線と逆転現象の分析)</span></button>
+                <button class="btn-run2" onclick="runMonteCarlo()">② 一括実行<br><span
+                        style="font-size:11px; font-weight:normal;">(現在の表設定でのAUC平均比較)</span></button>
+                <button class="btn-run3" onclick="runComplexitySweep()">③ スイープ分析<br><span
+                        style="font-size:11px; font-weight:normal;">(複雑度0%→100%のAUC推移)</span></button>
+            </div>
+
+            <div id="log-viewer"></div>
+            <canvas id="resultChart" style="margin-top: 20px; max-height: 450px; display: none;"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+
+        function generateSchoolParams(index, comp, isUI = false) {
+            const Q = 10;
+            let t1_a = Math.max(0, Math.min(10, 5 + (Math.random() * 10 - 5) * comp)); let t1_b = 10 - t1_a;
+            let t2_b = Math.max(0, Math.min(100, 50 + (Math.random() * 100 - 50) * comp));
+            let s1_r = 80 - (Math.random() * 40 * comp);
+            let s2_r = (100 - s1_r) * (0.5 + (Math.random() * 0.5 - 0.25) * comp);
+            let s1_a = Math.max(1, Math.min(9, 5 + (Math.random() * 6 - 3) * comp)); let s1_b = 10 - s1_a;
+            let s2_a = Math.max(1, Math.min(9, 8 + (Math.random() * 4 - 2) * comp)); let s2_b = 10 - s2_a;
+            let s3_a = Math.max(1, Math.min(9, 2 + (Math.random() * 6 - 3) * comp)); let s3_b = 10 - s3_a;
+
+            let we = Array.from({ length: 5 }, () => (Math.random() < (0.2 * comp)) ? 1.5 : 1.0);
+            let wr = Array.from({ length: 9 }, () => (Math.random() < (0.2 * comp)) ? 1.5 : 1.0);
+
+            let data = {
+                id: index, name: "高" + (index + 1), Q: Q,
+                t1: { a: t1_a, b: t1_b }, t2: { ratioB: t2_b },
+                t3: { s1: { r: s1_r, ab: { a: s1_a, b: s1_b } }, s2: { r: s2_r, ab: { a: s2_a, b: s2_b } }, s3: { ab: { a: s3_a, b: s3_b } } },
+                WE: we, WR: wr
+            };
+            if (isUI) addSchoolRowToUI(data);
+            return data;
+        }
+
+        function addSchoolRowToUI(d) {
+            const tbody = document.getElementById("schools_tbody");
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td class="col-name"><input type="text" value="${d.name}"></td>
+                <td><input type="number" class="val-q" value="${d.Q}"></td>
+                <td class="col-t1"><input type="number" class="val-t1-a" value="${d.t1.a.toFixed(1)}"></td>
+                <td class="col-t1"><input type="number" class="val-t1-b" value="${d.t1.b.toFixed(1)}"></td>
+                <td class="col-t2"><input type="number" class="val-t2-b" value="${d.t2.ratioB.toFixed(0)}"></td>
+                <td class="col-t3"><input type="number" class="val-t3-s1r" value="${d.t3.s1.r.toFixed(0)}"></td>
+                <td class="col-t3"><input type="text" class="val-t3-s1ab" value="${d.t3.s1.ab.a.toFixed(1)}:${d.t3.s1.ab.b.toFixed(1)}"></td>
+                <td class="col-t3"><input type="number" class="val-t3-s2r" value="${d.t3.s2.r.toFixed(0)}"></td>
+                <td class="col-t3"><input type="text" class="val-t3-s2ab" value="${d.t3.s2.ab.a.toFixed(1)}:${d.t3.s2.ab.b.toFixed(1)}"></td>
+                <td class="col-t3"><input type="text" class="val-t3-s3ab" value="${d.t3.s3.ab.a.toFixed(1)}:${d.t3.s3.ab.b.toFixed(1)}"></td>
+                <td class="col-e"><input type="text" class="val-we" value="${d.WE.join(',')}"></td>
+                <td class="col-e"><input type="text" class="val-wr" value="${d.WR.join(',')}"></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function generateRandomSchoolsUI() {
+            const count = parseInt(document.getElementById('auto_gen_count').value) || 5;
+            const compVal = parseInt(document.getElementById('manual_complexity').value) || 0;
+            document.getElementById("schools_tbody").innerHTML = "";
+            for (let i = 0; i < count; i++) generateSchoolParams(i, compVal / 100.0, true);
+        }
+        window.onload = () => generateRandomSchoolsUI();
+
+        function getSchoolsDataFromUI() {
+            const rows = document.querySelectorAll("#schools_tbody tr");
+            let schools = [];
+            rows.forEach((row, idx) => {
+                const parseAB = (str) => { let p = str.split(':'); return { a: parseFloat(p[0]) || 1, b: parseFloat(p[1]) || 1 }; };
+                schools.push({
+                    id: idx, name: row.querySelector("input[type='text']").value, Q: parseInt(row.querySelector(".val-q").value) || 10,
+                    t1: { a: parseFloat(row.querySelector(".val-t1-a").value) || 1, b: parseFloat(row.querySelector(".val-t1-b").value) || 1 },
+                    t2: { ratioB: parseFloat(row.querySelector(".val-t2-b").value) || 60 },
+                    t3: { s1: { r: parseFloat(row.querySelector(".val-t3-s1r").value) || 80, ab: parseAB(row.querySelector(".val-t3-s1ab").value) }, s2: { r: parseFloat(row.querySelector(".val-t3-s2r").value) || 10, ab: parseAB(row.querySelector(".val-t3-s2ab").value) }, s3: { ab: parseAB(row.querySelector(".val-t3-s3ab").value) } },
+                    WE: row.querySelector(".val-we").value.split(',').map(Number), WR: row.querySelector(".val-wr").value.split(',').map(Number)
+                });
+            });
+            return schools;
+        }
+
+        function randomNormal(mean = 0, stdev = 1) {
+            let u = 1 - Math.random(); let v = Math.random();
+            return (Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)) * stdev + mean;
+        }
+        function sampleWithoutReplacement(array, n) {
+            let res = new Array(n), len = array.length, taken = new Array(len);
+            if (n > len) n = len;
+            while (n--) { let x = Math.floor(Math.random() * len); res[n] = array[x in taken ? taken[x] : x]; taken[x] = --len in taken ? taken[len] : len; }
+            return res;
+        }
+
+        function generateCommonStudents(numStudents, schools, sigma, numPrefs) {
+            let students = [];
+            let schoolIds = schools.map(s => s.id);
+            for (let i = 0; i < numStudents; i++) {
+                let dv = 50.0 + Math.random() * 15.0;
+                let E = Array.from({ length: 5 }, () => Math.min(100, Math.max(0, Math.round(60 + 15 * (dv + randomNormal(0, sigma) - 50) / 10))));
+                let R = Array.from({ length: 9 }, () => Math.min(5, Math.max(1, Math.round(3 + (dv - 50) / 10 + randomNormal(0, sigma / 3)))));
+                let e_sums = {}, r_sums = {};
+                for (let j = 0; j < schools.length; j++) {
+                    let sch = schools[j], es = 0, rs = 0, we_max = 0, wr_max = 0;
+                    for (let k = 0; k < 5; k++) { es += E[k] * sch.WE[k]; we_max += 100 * sch.WE[k]; }
+                    for (let k = 0; k < 9; k++) { rs += R[k] * 3 * sch.WR[k]; wr_max += 5 * 3 * sch.WR[k]; }
+                    e_sums[j] = es; r_sums[j] = (rs / wr_max) * we_max;
+                }
+                students.push({ id: i, dv: dv, prefs: sampleWithoutReplacement(schoolIds, numPrefs), e_sums: e_sums, r_sums: r_sums });
+            }
+            return students;
+        }
+
+        // 評価関数
+        function evalType1(apps, school, students) {
+            let list = apps.map(id => ({ id: id, e: students[id].e_sums[school.id], r: students[id].r_sums[school.id] }));
+            list.forEach(a => a.score = (a.e * school.t1.a) + (a.r * school.t1.b));
+            return list.sort((a, b) => b.score - a.score);
+        }
+        function evalType2(apps, school, students) {
+            let list = apps.map(id => ({ id: id, e: students[id].e_sums[school.id], r: students[id].r_sums[school.id] }));
+            list.sort((a, b) => b.e - a.e); list.forEach((a, i) => a.rank_e = i + 1);
+            list.sort((a, b) => b.r - a.r); list.forEach((a, i) => a.rank_r = i + 1);
+            let Q = school.Q, gA = [], gB = [], gC = [], gD = [];
+            list.forEach(a => { if (a.rank_e <= Q && a.rank_r <= Q) gA.push(a); else if (a.rank_e <= Q) gB.push(a); else if (a.rank_r <= Q) gC.push(a); else gD.push(a); });
+            gA.sort((a, b) => (b.e + b.r) - (a.e + a.r)); gA.forEach((a, i) => a.score = 100000 - i);
+            let qB = Math.round(Math.max(0, Q - gA.length) * (school.t2.ratioB / 100)), qC = Math.max(0, Q - gA.length) - qB;
+            gB.sort((a, b) => b.e - a.e); let passB = gB.slice(0, qB), failB = gB.slice(qB); passB.forEach((a, i) => a.score = 80000 - i);
+            gC.sort((a, b) => b.r - a.r); let passC = gC.slice(0, qC), failC = gC.slice(qC); passC.forEach((a, i) => a.score = 60000 - i);
+            let rem = [...failB, ...failC, ...gD]; rem.sort((a, b) => (b.e + b.r) - (a.e + a.r)); rem.forEach((a, i) => a.score = a.e + a.r);
+            return [...gA, ...passB, ...passC, ...rem].sort((a, b) => b.score - a.score);
+        }
+        function evalType3(apps, school, students) {
+            let list = apps.map(id => ({ id: id, e: students[id].e_sums[school.id], r: students[id].r_sums[school.id] }));
+            let Q = school.Q, q1 = Math.round(Q * (school.t3.s1.r / 100)), q2 = Math.round(Q * (school.t3.s2.r / 100)), q3 = Math.max(0, Q - q1 - q2);
+            let pool = [...list], ranked = [];
+            function proc(p, q, ab, baseScore) {
+                if (q <= 0 || p.length === 0) return p;
+                p.forEach(a => a.temp = a.e * ab.a + a.r * ab.b); p.sort((a, b) => b.temp - a.temp);
+                let passed = p.slice(0, q); passed.forEach((a, i) => { a.score = baseScore - i; ranked.push(a); });
+                return p.slice(q);
+            }
+            pool = proc(pool, q1, school.t3.s1.ab, 300000); pool = proc(pool, q2, school.t3.s2.ab, 200000); pool = proc(pool, q3, school.t3.s3.ab, 100000);
+            pool.forEach((a, i) => { a.score = a.e + a.r; ranked.push(a); });
+            return ranked.sort((a, b) => b.score - a.score);
+        }
+
+        function runDAAlgorithm(students, schools, evalFunction) {
+            let freeStudents = students.map(s => s.id);
+            let proposalIndex = new Array(students.length).fill(0);
+            let matches = {}; schools.forEach(sch => matches[sch.id] = []);
+            let active = true;
+            while (active) {
+                active = false;
+                let newProposals = {}; schools.forEach(sch => newProposals[sch.id] = []);
+                freeStudents.forEach(sid => {
+                    let s = students[sid];
+                    if (proposalIndex[sid] < s.prefs.length) {
+                        newProposals[s.prefs[proposalIndex[sid]]].push(sid);
+                        active = true;
+                    }
+                });
+                freeStudents = [];
+                for (let j = 0; j < schools.length; j++) {
+                    let sch = schools[j]; let currentPool = matches[j].concat(newProposals[j]);
+                    if (currentPool.length > 0) {
+                        let ranked = evalFunction(currentPool, sch, students);
+                        let passCount = Math.min(sch.Q, ranked.length);
+                        matches[j] = ranked.slice(0, passCount).map(a => a.id);
+                        for (let k = passCount; k < ranked.length; k++) {
+                            freeStudents.push(ranked[k].id); proposalIndex[ranked[k].id]++;
+                        }
+                    }
+                }
+            }
+            return matches;
+        }
+
+        function calculateAUC(students, matches) {
+            let admittedIds = new Set();
+            Object.values(matches).forEach(arr => arr.forEach(id => admittedIds.add(id)));
+            let n1 = admittedIds.size, n0 = students.length - n1;
+            if (n1 === 0 || n0 === 0) return 0;
+            let sorted = [...students].sort((a, b) => a.dv - b.dv);
+            let sumRanks = 0;
+            for (let i = 0; i < sorted.length; i++) { if (admittedIds.has(sorted[i].id)) sumRanks += (i + 1); }
+            return (sumRanks - (n1 * (n1 + 1)) / 2) / (n1 * n0);
+        }
+
+        function countRejected(students, matches, totalQ) {
+            let sortedByDV = [...students].sort((a, b) => b.dv - a.dv);
+            let topTierIds = new Set(sortedByDV.slice(0, Math.min(totalQ, students.length)).map(s => s.id));
+            let admittedIds = new Set(); Object.values(matches).forEach(arr => arr.forEach(id => admittedIds.add(id)));
+            let rejectedCount = 0; topTierIds.forEach(id => { if (!admittedIds.has(id)) rejectedCount++; });
+            return rejectedCount;
+        }
+
+        function getROCData(students, matches) {
+            let admittedIds = new Set(); Object.values(matches).forEach(arr => arr.forEach(id => admittedIds.add(id)));
+            let sorted = [...students].sort((a, b) => b.dv - a.dv);
+            let P = admittedIds.size, N = students.length - P;
+            if (P === 0 || N === 0) return [{ x: 0, y: 0 }, { x: 1, y: 1 }];
+            let dataPoints = [{ x: 0, y: 0 }], tp = 0, fp = 0;
+            for (let i = 0; i < sorted.length; i++) {
+                if (admittedIds.has(sorted[i].id)) tp++; else fp++;
+                dataPoints.push({ x: fp / N, y: tp / P });
+            }
+            return dataPoints;
+        }
+
+        // ================= 実行系 =================
+
+        function runSingleROC() {
+            const nSt = parseInt(document.getElementById('num_students').value);
+            const nPr = parseInt(document.getElementById('num_prefs').value);
+            const sig = parseFloat(document.getElementById('sigma').value);
+            const schools = getSchoolsDataFromUI();
+            if (!schools.length) return;
+
+            document.getElementById('log-viewer').style.display = 'block';
+            document.getElementById('log-viewer').innerHTML = "計算中...";
+
+            setTimeout(() => {
+                let students = generateCommonStudents(nSt, schools, sig, nPr);
+                let m1 = runDAAlgorithm(students, schools, evalType1);
+                let m2 = runDAAlgorithm(students, schools, evalType2);
+                let m3 = runDAAlgorithm(students, schools, evalType3);
+
+                let auc1 = calculateAUC(students, m1), auc2 = calculateAUC(students, m2), auc3 = calculateAUC(students, m3);
+
+                drawROCChart(getROCData(students, m1), getROCData(students, m2), getROCData(students, m3), auc1, auc2, auc3);
+
+                let totalQ = schools.reduce((s, sch) => s + sch.Q, 0);
+                let topTierIds = [...students].sort((a, b) => b.dv - a.dv).slice(0, Math.min(totalQ, students.length)).map(s => s.id);
+                let getSchoolName = (matches, sid) => { for (let i = 0; i < schools.length; i++) if (matches[i].includes(sid)) return schools[i].name; return "不合格"; };
+
+                let html = `<h3>① AUC結果と上位層の合否差異追跡</h3>`;
+                html += `<strong>[AUC (ROC曲線下面積)] 1.0に近いほど潜在学力(DV)に忠実な制度です。</strong><br>`;
+                html += `・1型(線形): <b>${auc1.toFixed(4)}</b><br>・2型(セグ): <b>${auc2.toFixed(4)}</b><br>・3型(多段): <b>${auc3.toFixed(4)}</b><br><br>`;
+
+                let diffCount = 0;
+                topTierIds.forEach((id, rank) => {
+                    let s1 = getSchoolName(m1, id), s2 = getSchoolName(m2, id), s3 = getSchoolName(m3, id);
+                    if (s1 !== s2 || s2 !== s3) {
+                        diffCount++;
+                        html += `DV順位 ${rank + 1}位 (生徒ID:${id} / DV:${students[id].dv.toFixed(1)})<br>`;
+                        html += `<span class="log-diff"> ▶ 1型: ${s1} | 2型: ${s2} | 3型: ${s3}</span><br><br>`;
+                    }
+                });
+                if (diffCount === 0) html += "上位層において、方式間で合否結果に差異は発生しませんでした。";
+                else html = `<strong>定員上位 ${totalQ}名 のうち ${diffCount}名 の合否(進学先)が変動しました。</strong><br><br>` + html;
+                document.getElementById('log-viewer').innerHTML = html;
+            }, 50);
+        }
+
+        function runMonteCarlo() {
+            const iters = parseInt(document.getElementById('iterations').value) || 300;
+            const nSt = parseInt(document.getElementById('num_students').value);
+            const nPr = parseInt(document.getElementById('num_prefs').value);
+            const sig = parseFloat(document.getElementById('sigma').value);
+            const schools = getSchoolsDataFromUI();
+
+            document.getElementById('log-viewer').style.display = 'block';
+            document.getElementById('log-viewer').innerHTML = `一括シミュレーション（${iters}回）を実行中...`;
+            const totalQ = schools.reduce((s, sch) => s + sch.Q, 0);
+
+            setTimeout(() => {
+                let res1 = [], res2 = [], res3 = [], sumAb1 = 0, sumAb2 = 0, sumAb3 = 0, sumAuc1 = 0, sumAuc2 = 0, sumAuc3 = 0, maxAbure = 0;
+                for (let i = 0; i < iters; i++) {
+                    let students = generateCommonStudents(nSt, schools, sig, nPr);
+                    let m1 = runDAAlgorithm(students, schools, evalType1), m2 = runDAAlgorithm(students, schools, evalType2), m3 = runDAAlgorithm(students, schools, evalType3);
+                    let c1 = countRejected(students, m1, totalQ), c2 = countRejected(students, m2, totalQ), c3 = countRejected(students, m3, totalQ);
+                    res1.push(c1); res2.push(c2); res3.push(c3);
+                    sumAb1 += c1; sumAb2 += c2; sumAb3 += c3;
+                    sumAuc1 += calculateAUC(students, m1); sumAuc2 += calculateAUC(students, m2); sumAuc3 += calculateAUC(students, m3);
+                    maxAbure = Math.max(maxAbure, c1, c2, c3);
+                }
+
+                let html = `<h3>② 一括シミュレーション(${iters}回) の平均結果</h3>
+                            <table class="result-table">
+                            <tr><th>方式</th><th>平均あぶれ人数</th><th>平均 AUC</th></tr>
+                            <tr><td>1型 (線形)</td><td class="val-t1">${(sumAb1 / iters).toFixed(2)} 人</td><td class="val-t1">${(sumAuc1 / iters).toFixed(4)}</td></tr>
+                            <tr><td>2型 (セグ)</td><td class="val-t2">${(sumAb2 / iters).toFixed(2)} 人</td><td class="val-t2">${(sumAuc2 / iters).toFixed(4)}</td></tr>
+                            <tr><td>3型 (多段)</td><td class="val-t3">${(sumAb3 / iters).toFixed(2)} 人</td><td class="val-t3">${(sumAuc3 / iters).toFixed(4)}</td></tr>
+                            </table>`;
+                document.getElementById('log-viewer').innerHTML = html;
+                let f1 = new Array(maxAbure + 1).fill(0), f2 = new Array(maxAbure + 1).fill(0), f3 = new Array(maxAbure + 1).fill(0);
+                res1.forEach(r => f1[r]++); res2.forEach(r => f2[r]++); res3.forEach(r => f3[r]++);
+                drawBarChart(Array.from({ length: maxAbure + 1 }, (_, i) => i), f1, f2, f3, totalQ);
+            }, 50);
+        }
+
+        function runComplexitySweep() {
+            const sweepIters = parseInt(document.getElementById('sweep_iterations').value) || 1000;
+            const nSt = parseInt(document.getElementById('num_students').value);
+            const nPr = parseInt(document.getElementById('num_prefs').value);
+            const sig = parseFloat(document.getElementById('sigma').value);
+            const numSchools = parseInt(document.getElementById('auto_gen_count').value) || 5;
+
+            document.getElementById('log-viewer').style.display = 'block';
+            document.getElementById('log-viewer').innerHTML = `複雑度をスイープさせながら計算中... <br>※ 1プロットあたり <b>${sweepIters} 回</b> 実行するため、数秒〜数十秒程度画面が停止します。しばらくお待ちください。`;
+
+            // 10%刻みの高解像度プロット
+            let complexityLevels = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+            let aucResults = { t1: [], t2: [], t3: [] };
+
+            setTimeout(() => {
+                for (let c_idx = 0; c_idx < complexityLevels.length; c_idx++) {
+                    let compFloat = complexityLevels[c_idx] / 100.0;
+                    let sumA1 = 0, sumA2 = 0, sumA3 = 0;
+
+                    for (let i = 0; i < sweepIters; i++) {
+                        let schools = [];
+                        for (let k = 0; k < numSchools; k++) schools.push(generateSchoolParams(k, compFloat, false));
+                        let students = generateCommonStudents(nSt, schools, sig, nPr);
+                        sumA1 += calculateAUC(students, runDAAlgorithm(students, schools, evalType1));
+                        sumA2 += calculateAUC(students, runDAAlgorithm(students, schools, evalType2));
+                        sumA3 += calculateAUC(students, runDAAlgorithm(students, schools, evalType3));
+                    }
+                    aucResults.t1.push(sumA1 / sweepIters); aucResults.t2.push(sumA2 / sweepIters); aucResults.t3.push(sumA3 / sweepIters);
+                }
+
+                let html = `<h3>③ 複雑度スイープ分析 完了 (${sweepIters}回/点)</h3>
+                    <p>統計的ノイズを排除した高精度のスイープ結果です。</p>
+                    <table class="result-table">
+                        <tr><th>複雑度</th><th>1型(線形) AUC</th><th>2型(セグ) AUC</th><th>3型(多段) AUC</th></tr>`;
+                for (let i = 0; i < complexityLevels.length; i++) {
+                    html += `<tr><td>${complexityLevels[i]}%</td>
+                                 <td class="val-t1">${aucResults.t1[i].toFixed(4)}</td>
+                                 <td class="val-t2">${aucResults.t2[i].toFixed(4)}</td>
+                                 <td class="val-t3">${aucResults.t3[i].toFixed(4)}</td></tr>`;
+                }
+                html += `</table>`;
+                document.getElementById('log-viewer').innerHTML = html;
+
+                drawSweepChart(complexityLevels, aucResults.t1, aucResults.t2, aucResults.t3);
+            }, 100);
+        }
+
+        // --- グラフ描画 ---
+        function drawROCChart(roc1, roc2, roc3, auc1, auc2, auc3) {
+            const ctx = document.getElementById('resultChart').getContext('2d');
+            document.getElementById('resultChart').style.display = 'block';
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        { label: `1型(線形) AUC:${auc1.toFixed(3)}`, data: roc1, borderColor: '#5dade2', backgroundColor: 'transparent', pointRadius: 0, borderWidth: 2 },
+                        { label: `2型(セグ) AUC:${auc2.toFixed(3)}`, data: roc2, borderColor: '#58d68d', backgroundColor: 'transparent', pointRadius: 0, borderWidth: 2 },
+                        { label: `3型(多段) AUC:${auc3.toFixed(3)}`, data: roc3, borderColor: '#af7ac5', backgroundColor: 'transparent', pointRadius: 0, borderWidth: 2 },
+                        { label: 'ランダム', data: [{ x: 0, y: 0 }, { x: 1, y: 1 }], borderColor: '#999', borderDash: [5, 5], pointRadius: 0, borderWidth: 1 }
+                    ]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'ROC曲線 (DVによる合否予測精度)' } }, scales: { x: { type: 'linear', min: 0, max: 1, title: { display: true, text: 'False Positive Rate' } }, y: { type: 'linear', min: 0, max: 1, title: { display: true, text: 'True Positive Rate' } } } }
+            });
+        }
+
+        function drawBarChart(labels, d1, d2, d3, totalQ) {
+            const ctx = document.getElementById('resultChart').getContext('2d');
+            document.getElementById('resultChart').style.display = 'block';
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: '1型 (線形)', data: d1, backgroundColor: 'rgba(93, 173, 226, 0.7)' },
+                        { label: '2型 (セグ)', data: d2, backgroundColor: 'rgba(88, 214, 141, 0.7)' },
+                        { label: '3型 (多段)', data: d3, backgroundColor: 'rgba(175, 122, 197, 0.7)' }
+                    ]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'あぶれ人数のヒストグラム (モンテカルロ)' } }, scales: { y: { beginAtZero: true, title: { display: true, text: '頻度' } }, x: { title: { display: true, text: `上位層のあぶれ人数 (枠${totalQ}名)` } } } }
+            });
+        }
+
+        function drawSweepChart(labels, d1, d2, d3) {
+            const ctx = document.getElementById('resultChart').getContext('2d');
+            document.getElementById('resultChart').style.display = 'block';
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.map(l => l + '%'),
+                    datasets: [
+                        { label: '1型 (線形)', data: d1, borderColor: '#5dade2', backgroundColor: 'transparent', tension: 0.1, borderWidth: 3 },
+                        { label: '2型 (セグ)', data: d2, borderColor: '#58d68d', backgroundColor: 'transparent', tension: 0.1, borderWidth: 3 },
+                        { label: '3型 (多段)', data: d3, borderColor: '#af7ac5', backgroundColor: 'transparent', tension: 0.1, borderWidth: 3 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { title: { display: true, text: '【高解像度スイープ分析】制度の複雑度がAUCに与える影響' } },
+                    scales: {
+                        x: { title: { display: true, text: '制度の複雑度 (0% = 統一基準, 100% = カオス)' } },
+                        y: { title: { display: true, text: '平均 AUC' } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
